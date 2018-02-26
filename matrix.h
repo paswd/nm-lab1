@@ -14,6 +14,7 @@ private:
 	TNum **Values;
 
 public:
+	TMatrix(void);
 	TMatrix(TMatrix *sample);
 	TMatrix(size_t h, size_t w);
 	~TMatrix(void);
@@ -26,9 +27,13 @@ public:
 	size_t GetWidth(void);
 	size_t GetHeight(void);
 	void Resize(size_t h, size_t w);
+	bool IsNull(void);
+	bool ReadFromFile(std::string filename);
 };
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w);
 TMatrix MatrixComposition(TMatrix m1, TMatrix m2);
+
+TMatrix LU(TMatrix matrix);
 
 #endif //MATRIX_H

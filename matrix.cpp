@@ -1,5 +1,15 @@
 #include "matrix.h"
+#include <iostream>
+#include <fstream>
 #include <algorithm>
+
+#define EMPTY_MATRIX TMatrix(0, 0)
+
+TMatrix::TMatrix(void) {
+	this->InitStatus = false;
+	this->Height = 0;
+	this->Width = 0;
+}
 
 TMatrix::TMatrix(TMatrix *sample) {
 	this->InitStatus = false;
@@ -106,10 +116,56 @@ void TMatrix::Resize(size_t h, size_t w) {
 	this->Width = w;
 }
 
+bool TMatrix::IsNull(void) {
+	if (this->Height == 0 || this->Width == 0) {
+		return true;
+	}
+	return false;
+}
+
+bool TMatrix::ReadFromFile(string filename) {
+	cout << "Чтение из файла..." << endl;
+	ifstream fin(filename.c_str());
+	if (!fin.is_open()) {
+        cout << "Ошибка чтения файла" << endl;
+        return false;
+	}
+	TMatrix *tmp_matrix = new TMatrix();
+
+	try {
+		size_t h, w;
+		if (!(cin >> h)) {
+			throw 1;
+		}
+		if (!(cin >> w)) {
+			throw 1;
+		}
+		tmp_matrix->Init(NULL, h, w);
+		for (size_t i = 0; i < h; i++) {
+			for (size_t j = 0; j < w; j++) {
+				TNum tmp;
+				if (!(cin >> tmp)) {
+					throw 2;
+				}
+				tmp_matrix->SetValue(tmp, i, j);
+			}
+		}
+
+	} catch (int a) {
+		delete tmp_matrix;
+		cout << "Ошибка чтения из файла" << endl;
+		return false;
+	}
+	fin.close();
+	this->Init(tmp_matrix, tmp_matrix->GetHeight(), tmp_matrix->GetWidth());
+	delete tmp_matrix;
+	cout << "Матрица успешно импортирована" << endl;
+}
+
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 	if (i + h > matrix.GetHeight() || j + w > matrix.GetWidth()) {
-		return TMatrix(0, 0);
+		return EMPTY_MATRIX;
 	}
 	TMatrix new_matrix(h, w);
 	for (size_t x = 0; x < h; x++) {
@@ -121,6 +177,62 @@ TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 }
 
 TMatrix MatrixComposition(TMatrix m1, TMatrix m2) {
-	
+	if (m1.GetWidtht() != m2.GetHeight()) {
+		return EMPTY_MATRIX;
+	}
+	size_t h = m1.GetHeight();
+	size_t w = m2.GetWidtht();
+	TMatrix res(h, w);
+	for (size_t i = 0; i < h; i++) {
+		for (size_t j = 0; j < w; j++) {
+			TNum res = 0.;
+			for (size_t r = 0; r < m1.GetWidtht(); r++) {
+				res += m1.GetValue(i, r) * m2.GetValue(r, j);
+			}
+			res.SetValue(res, i, j);
+		}
+	}
+	return res;
+}
+
+TMatrix LU(TMatrix in) {
+	if (in.GetHeight() != in.GetWidtht()) {
+		return EMPTY_MATRIX;
+	}
+	size_t size = in.GetHeight();
+	TMatrix l(size, size);
+	TMatrix u(in);
+
+	for (size_t i = 0; i < size; i++) {
+		for (size_t j = i; j < size; j++) {
+			TNum tmp = u.GetValue(j, i) / u.GetValue(i, i);
+			l.SetValue(tmp, j, i);
+		}
+	}
+	for (size_t k = 1; k < size; k++) {
+		for (size_t i = k - 1; i < size; i++) {
+			for (size_t j = i; j < size; j++) {
+				TNum tmp = u.GetValue(j, i) / u.GetValue(i, i);
+				l.SetValue(tmp, j, i);
+			}
+		}
+		for (size_t i = k; i < size; i++) {
+			for (size_t j = k - 1; j < size; j++) {
+				TNum tmp = u.GetValue(i, j) - l.GetValue(i, k - 1) * u.GetValue(k - 1, j);
+				u.SetValue(tmp, i, j);
+			}
+		}
+	}
+	TMatrix united(size, size);
+	for (size_t i = 0; i < size; i++) {
+		for (size_t j = 0; j < size; j++) {
+			if (i > j) {
+				united.SetValue(l.GetValue(i, j), i, j);
+			} else {
+				united.SetValue(u.GetValue(i, j), i, j);
+			}
+		}
+	}
+	return united;
 }
 
