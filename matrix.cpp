@@ -3,6 +3,8 @@
 #include <fstream>
 #include <algorithm>
 
+using namespace std;
+
 #define EMPTY_MATRIX TMatrix(0, 0)
 
 TMatrix::TMatrix(void) {
@@ -10,21 +12,27 @@ TMatrix::TMatrix(void) {
 	this->Height = 0;
 	this->Width = 0;
 }
-
 TMatrix::TMatrix(TMatrix *sample) {
 	this->InitStatus = false;
 	this->Init(sample, sample->GetHeight(), sample->GetWidth());
 }
-
 TMatrix::TMatrix(size_t h, size_t w) {
 	this->InitStatus = false;
 	this->Init(NULL, h, w);
 }
+TMatrix::TMatrix(vector <TNum> vect) {
+	this->InitStatus = false;
+	this->Init(NULL, vect.size(), 1);
+	for (size_t i = 0; i < vect.size(); i++) {
+		this->SetValue(vect[i], i, 1);
+	}
+}
+
 TMatrix::~TMatrix(void) {
 	this->Clear();
 }
 
-void TMatrix::Inint(TMatrix *sample, size_t h, size_t w) {
+void TMatrix::Init(TMatrix *sample, size_t h, size_t w) {
 	if (this->InitStatus) {
 		this->Clear();
 	}
@@ -72,7 +80,7 @@ void TMatrix::Print(void) {
 	}
 }
 
-TMum TMatrix::GetValue(size_t i, size_t j) {
+TNum TMatrix::GetValue(size_t i, size_t j) {
 	if (i >= this->Height || j >= this->Width) {
 		return 0;
 	}
@@ -104,7 +112,7 @@ void TMatrix::Resize(size_t h, size_t w) {
 		new_values[i] = new TNum[w];
 		for (size_t j = 0; j < w; j++) {
 			if (i < this->Height && j < this->Width) {
-				new_values[i][j] = this->Values[i][j]
+				new_values[i][j] = this->Values[i][j];
 			} else {
 				this->Values[i][j] = 0.;
 			}
@@ -123,45 +131,59 @@ bool TMatrix::IsNull(void) {
 	return false;
 }
 
-bool TMatrix::ReadFromFile(string filename) {
+bool TMatrix::ReadFromFile(ifstream &fin, bool show_imported_matrix) {
 	cout << "Чтение из файла..." << endl;
-	ifstream fin(filename.c_str());
+	/*ifstream fin(filename.c_str());
 	if (!fin.is_open()) {
         cout << "Ошибка чтения файла" << endl;
         return false;
-	}
+	}*/
 	TMatrix *tmp_matrix = new TMatrix();
 
 	try {
 		size_t h, w;
-		if (!(cin >> h)) {
+		if (!(fin >> h)) {
 			throw 1;
 		}
-		if (!(cin >> w)) {
+		if (!(fin >> w)) {
 			throw 1;
 		}
 		tmp_matrix->Init(NULL, h, w);
 		for (size_t i = 0; i < h; i++) {
 			for (size_t j = 0; j < w; j++) {
 				TNum tmp;
-				if (!(cin >> tmp)) {
+				if (!(fin >> tmp)) {
 					throw 2;
 				}
 				tmp_matrix->SetValue(tmp, i, j);
 			}
 		}
+		//throw 0;
 
 	} catch (int a) {
+		//if (a != 0) {
 		delete tmp_matrix;
 		cout << "Ошибка чтения из файла" << endl;
 		return false;
+		//}
 	}
-	fin.close();
+	//fin.close();
 	this->Init(tmp_matrix, tmp_matrix->GetHeight(), tmp_matrix->GetWidth());
 	delete tmp_matrix;
-	cout << "Матрица успешно импортирована" << endl;
+	cout << "Матрица успешно импортирована";
+	if (show_imported_matrix) {
+		cout << ":" << endl;
+		for (size_t i = 0; i < Height; i++) {
+			for (size_t j = 0; j < Width; j++) {
+				cout << this->GetValue(i, j) << " ";
+			}
+			cout << endl;
+		}
+	} else {
+		cout << endl;
+	}
+	return true;
 }
-
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 	if (i + h > matrix.GetHeight() || j + w > matrix.GetWidth()) {
@@ -177,31 +199,34 @@ TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 }
 
 TMatrix MatrixComposition(TMatrix m1, TMatrix m2) {
-	if (m1.GetWidtht() != m2.GetHeight()) {
+	if (m1.GetWidth() != m2.GetHeight()) {
 		return EMPTY_MATRIX;
 	}
 	size_t h = m1.GetHeight();
-	size_t w = m2.GetWidtht();
+	size_t w = m2.GetWidth();
 	TMatrix res(h, w);
 	for (size_t i = 0; i < h; i++) {
 		for (size_t j = 0; j < w; j++) {
-			TNum res = 0.;
-			for (size_t r = 0; r < m1.GetWidtht(); r++) {
-				res += m1.GetValue(i, r) * m2.GetValue(r, j);
+			TNum res_num = 0.;
+			for (size_t r = 0; r < m1.GetWidth(); r++) {
+				res_num += m1.GetValue(i, r) * m2.GetValue(r, j);
 			}
-			res.SetValue(res, i, j);
+			res.SetValue(res_num, i, j);
 		}
 	}
 	return res;
 }
 
-TMatrix LU(TMatrix in) {
-	if (in.GetHeight() != in.GetWidtht()) {
-		return EMPTY_MATRIX;
+bool LU(TMatrix *in, TMatrix *united) {
+	//cout << "LU:IN" << endl;
+	if (in->GetHeight() != in->GetWidth()) {
+		return false;
 	}
-	size_t size = in.GetHeight();
+	//cout << "LU:POINT1" << endl;
+	size_t size = in->GetHeight();
 	TMatrix l(size, size);
 	TMatrix u(in);
+	//cout << "LU:POINT2" << endl;
 
 	for (size_t i = 0; i < size; i++) {
 		for (size_t j = i; j < size; j++) {
@@ -209,6 +234,7 @@ TMatrix LU(TMatrix in) {
 			l.SetValue(tmp, j, i);
 		}
 	}
+	//cout << "LU:POINT3" << endl;
 	for (size_t k = 1; k < size; k++) {
 		for (size_t i = k - 1; i < size; i++) {
 			for (size_t j = i; j < size; j++) {
@@ -223,16 +249,20 @@ TMatrix LU(TMatrix in) {
 			}
 		}
 	}
-	TMatrix united(size, size);
+	//cout << "LU:POINT4" << endl;
+	//TMatrix united(size, size);
+	united->Init(NULL, size, size);
 	for (size_t i = 0; i < size; i++) {
 		for (size_t j = 0; j < size; j++) {
 			if (i > j) {
-				united.SetValue(l.GetValue(i, j), i, j);
+				united->SetValue(l.GetValue(i, j), i, j);
 			} else {
-				united.SetValue(u.GetValue(i, j), i, j);
+				united->SetValue(u.GetValue(i, j), i, j);
 			}
 		}
 	}
-	return united;
+	//cout << "LU:OUT" << endl;
+	//return united;
+	return true;
 }
 

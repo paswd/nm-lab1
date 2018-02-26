@@ -9,7 +9,7 @@ class TMatrix {
 private:
 	bool InitStatus;
 	size_t Height;
-	size_t Wigth;
+	size_t Width;
 
 	TNum **Values;
 
@@ -17,6 +17,7 @@ public:
 	TMatrix(void);
 	TMatrix(TMatrix *sample);
 	TMatrix(size_t h, size_t w);
+	TMatrix(std::vector <TNum> vect);
 	~TMatrix(void);
 	void Init(TMatrix *sample, size_t h, size_t w);
 	void Clear(void);
@@ -28,12 +29,12 @@ public:
 	size_t GetHeight(void);
 	void Resize(size_t h, size_t w);
 	bool IsNull(void);
-	bool ReadFromFile(std::string filename);
+	bool ReadFromFile(std::ifstream &fin, bool show_imported_matrix);
 };
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w);
 TMatrix MatrixComposition(TMatrix m1, TMatrix m2);
 
-TMatrix LU(TMatrix matrix);
+bool LU(TMatrix *matrix, TMatrix *out);
 
 #endif //MATRIX_H
