@@ -31,6 +31,7 @@ public:
 	bool IsNull(void);
 	bool ReadFromFile(std::ifstream &fin, bool show_imported_matrix);
 	void Transpose(void);
+	void SetUnit(size_t side);
 };
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w);

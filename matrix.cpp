@@ -211,6 +211,13 @@ void TMatrix::Transpose(void) {
 	this->Init(new_matrix, new_matrix->GetHeight(), new_matrix->GetWidth());
 	delete new_matrix;
 }
+void TMatrix::SetUnit(size_t side) {
+	this->Clear();
+	this->Init(NULL, side, side);
+	for (size_t i = 0; i < side; i++) {
+		this->SetValue(1, i, i);
+	}
+}
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 	if (i + h > matrix.GetHeight() || j + w > matrix.GetWidth()) {
