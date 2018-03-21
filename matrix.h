@@ -30,10 +30,11 @@ public:
 	void Resize(size_t h, size_t w);
 	bool IsNull(void);
 	bool ReadFromFile(std::ifstream &fin, bool show_imported_matrix);
+	void Transpose(void);
 };
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w);
-TMatrix MatrixComposition(TMatrix m1, TMatrix m2);
+void MatrixComposition(TMatrix *m1, TMatrix *m2, TMatrix *res);
 
 bool LU(TMatrix *matrix, TMatrix *out);
 

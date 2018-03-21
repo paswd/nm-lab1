@@ -184,6 +184,33 @@ bool TMatrix::ReadFromFile(ifstream &fin, bool show_imported_matrix) {
 	}
 	return true;
 }
+void TMatrix::Transpose(void) {
+	/*TNum **new_values = new TNum*[this->Width];
+
+	for (size_t i = 0; i < this->Width; i++) {
+		new_values[i] = new TNum[this->Height];
+		for (size_t j = 0; j < this->Height; j++) {
+			new_values[i][j] = this->Values[j][i];
+		}
+	}
+
+	size_t h = this->Width;
+	size_t w = this->Height;
+	this->Clear();
+	this->Width = w;
+	this->Height = h;
+	this->Values = new_values;
+	this->InitStatus = true;*/
+	TMatrix *new_matrix = new TMatrix(this->Width, this->Height);
+	for (size_t i = 0; i < this->Width; i++) {
+		for (size_t j = 0; j < this->Height; j++) {
+			new_matrix->SetValue(this->GetValue(j, i), i, j);
+		}
+	}
+	this->Clear();
+	this->Init(new_matrix, new_matrix->GetHeight(), new_matrix->GetWidth());
+	delete new_matrix;
+}
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 	if (i + h > matrix.GetHeight() || j + w > matrix.GetWidth()) {
@@ -198,23 +225,24 @@ TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
 	return new_matrix;
 }
 
-TMatrix MatrixComposition(TMatrix m1, TMatrix m2) {
-	if (m1.GetWidth() != m2.GetHeight()) {
-		return EMPTY_MATRIX;
+void MatrixComposition(TMatrix *m1, TMatrix *m2, TMatrix *res) {
+	if (m1->GetWidth() != m2->GetHeight()) {
+		res->Clear();
+		return;
 	}
-	size_t h = m1.GetHeight();
-	size_t w = m2.GetWidth();
-	TMatrix res(h, w);
+	size_t h = m1->GetHeight();
+	size_t w = m2->GetWidth();
+	//TMatrix res(h, w);
+	res->Init(NULL, h, w);
 	for (size_t i = 0; i < h; i++) {
 		for (size_t j = 0; j < w; j++) {
 			TNum res_num = 0.;
-			for (size_t r = 0; r < m1.GetWidth(); r++) {
-				res_num += m1.GetValue(i, r) * m2.GetValue(r, j);
+			for (size_t r = 0; r < m1->GetWidth(); r++) {
+				res_num += m1->GetValue(i, r) * m2->GetValue(r, j);
 			}
-			res.SetValue(res_num, i, j);
+			res->SetValue(res_num, i, j);
 		}
 	}
-	return res;
 }
 
 bool LU(TMatrix *in, TMatrix *united) {
