@@ -2,12 +2,15 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <limits>
 #include "types.h"
 #include "matrix.h"
 
 using namespace std;
 
 const string INCORRECT_SELECTION = "Неверная опция";
+const TNum EPS = (TNum) std::numeric_limits<TNum>::epsilon() * 10000000.;
 
 vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b);
 
@@ -211,11 +214,207 @@ void RunSolve(string filename) {
 }
 
 void BasicIterationSolve(string filename) {
-	cout << filename << endl;
+	TMatrix matrix;
+	ifstream fin(filename.c_str());
+	if (!fin.is_open()) {
+        cout << "Ошибка чтения файла" << endl;
+        return;
+	}
+	size_t size = 0;
+	vector <TNum> b;
+	//cout << b.size() << endl;
+	try {
+		bool readres = matrix.ReadFromFile(fin, true);
+		//cout << "POINT1" << endl;
+
+		if (!readres) {
+			throw 1;
+		}
+
+		//cout << "POINT2" << endl;
+
+		size = matrix.GetHeight();
+		b.resize(size);
+
+		//cout << "POINT3" << endl;
+		
+
+		for (size_t i = 0; i < size; i++) {
+			if (!(fin >> b[i])) {
+				throw 1;
+			}
+		}
+
+		//cout << "POINT4" << endl;
+	} catch (int a) {
+		fin.close();
+		cout << "Ошибка чтения из файла" << endl;
+		return;
+	}
+	cout << "Результирующий вектор успешно импортирован:" << endl;
+	for (size_t i = 0; i < size; i++) {
+		cout << b[i] << " ";
+	}
+	cout << endl;
+
+	//cout << "POINT5" << endl;
+	fin.close();
+	
+	vector <TNum> x(size, 1);
+	
+	size_t n;
+	vector <TNum> e(size);
+	vector <TNum> d(size);
+	bool is_set_first = true;
+	//bool is_continue = true;
+
+	while (true) {
+		if (is_set_first) {
+			n = 1;
+		}
+		is_set_first = true;
+		vector <TNum> xn(size);
+		for (size_t i = 0; i < size; i++) {
+			e[i] = 0.;
+			for (size_t j = 0; j < size; j++) {
+				e[i] += matrix.GetValue(i, j) * x[j];
+			}
+			e[i] -= b[i];
+			d[i] = e[i] / matrix.GetValue(i, i);
+			xn[i] = x[i] - d[i];
+
+		}
+		n++;
+		if (n <= size) {
+			is_set_first = false;
+			continue;
+		}
+		for (size_t i = 0; i < size; i++) {
+			x[i] = xn[i];
+		}
+		TNum max_d = 0;
+		bool max_empty = true;
+		for (size_t i = 0; i < size; i++) {
+			TNum dn = abs(d[i]);
+			if (dn > max_d || max_empty) {
+				max_d = dn;
+				max_empty = false;
+			}
+		}
+		//cout << max_d << endl;
+		if (max_d < EPS) {
+			break;
+		}
+	}
+	cout << "Решение:" << endl;
+	for (size_t i = 0; i < size; i++) {
+		cout << "X" << i + 1 << " = " << x[i] << endl;
+	}
 }
 
 void ZeidelSolve(string filename) {
-	cout << filename << endl;
+	//cout << "ZEIDEL" << endl;
+	TMatrix matrix;
+	ifstream fin(filename.c_str());
+	if (!fin.is_open()) {
+        cout << "Ошибка чтения файла" << endl;
+        return;
+	}
+	size_t size = 0;
+	vector <TNum> b;
+	//cout << b.size() << endl;
+	try {
+		bool readres = matrix.ReadFromFile(fin, true);
+		//cout << "POINT1" << endl;
+
+		if (!readres) {
+			throw 1;
+		}
+
+		//cout << "POINT2" << endl;
+
+		size = matrix.GetHeight();
+		b.resize(size);
+
+		//cout << "POINT3" << endl;
+		
+
+		for (size_t i = 0; i < size; i++) {
+			if (!(fin >> b[i])) {
+				throw 1;
+			}
+		}
+
+		//cout << "POINT4" << endl;
+	} catch (int a) {
+		fin.close();
+		cout << "Ошибка чтения из файла" << endl;
+		return;
+	}
+	cout << "Результирующий вектор успешно импортирован:" << endl;
+	for (size_t i = 0; i < size; i++) {
+		cout << b[i] << " ";
+	}
+	cout << endl;
+
+	//cout << "POINT5" << endl;
+	fin.close();
+	
+	vector <TNum> x(size, 1);
+	
+	size_t n;
+	vector <TNum> e(size);
+	vector <TNum> d(size);
+	bool is_set_first = true;
+	//bool is_continue = true;
+	vector <TNum> xn(size, 1);
+
+	while (true) {
+		if (is_set_first) {
+			n = 1;
+		}
+		is_set_first = true;
+		
+		for (size_t i = 0; i < size; i++) {
+			e[i] = 0.;
+			for (size_t j = 0; j < size; j++) {
+				if (j < i) {
+					e[i] += matrix.GetValue(i, j) * xn[j];
+				} else {
+					e[i] += matrix.GetValue(i, j) * x[j];
+				}
+			}
+			e[i] -= b[i];
+			d[i] = e[i] / matrix.GetValue(i, i);
+			xn[i] = x[i] - d[i];
+
+		}
+		n++;
+		if (n <= size) {
+			is_set_first = false;
+			continue;
+		}
+		for (size_t i = 0; i < size; i++) {
+			x[i] = xn[i];
+		}
+		TNum max_d = 0;
+		bool max_empty = true;
+		for (size_t i = 0; i < size; i++) {
+			TNum dn = abs(d[i]);
+			if (dn > max_d || max_empty) {
+				max_d = dn;
+				max_empty = false;
+			}
+		}
+		//cout << max_d << endl;
+		if (max_d < EPS) {
+			break;
+		}
+	}
+	cout << "Решение:" << endl;
+	for (size_t i = 0; i < size; i++) {
+		cout << "X" << i + 1 << " = " << x[i] << endl;
+	}
 }
 
 void RotateSolve(string filename) {
@@ -226,12 +425,13 @@ void QRSolve(string filename) {
 	cout << filename << endl;
 }
 
-int main(void) {	
+int main(void) {
+	//cout << "EPS = " << EPS << endl;
 	cout << "=================" << endl;
 	cout << "Выберите задание:" << endl;
 	cout << "1 - LU-разложение" << endl;
 	cout << "2 - Метод прогонки" << endl;
-	cout << "3 - Метод простых итераций / Метод Зейделя (не реализовано)" << endl;
+	cout << "3 - Метод простых итераций / Метод Зейделя" << endl;
 	cout << "4 - Метод вращений (не реализовано)" << endl;
 	cout << "5 - QR-разложение (не реализовано)" << endl;
 	cout << "=================" << endl;
@@ -256,15 +456,15 @@ int main(void) {
 		case 3:
 			cout << "Выберите метод:" << endl;
 			cout << "1 - Метод простых итераций" << endl;
-			cout << "2 - Метод Зейделя" << endl;
+			cout << "2 - Метод Зейделя (не реализовано)" << endl;
 			cin >> in_selection;
 			switch (in_selection) {
 				case 1:
 					BasicIterationSolve(filename);
 					break;
 				case 2:
-					break;
 					ZeidelSolve(filename);
+					break;
 				default:
 					cout << INCORRECT_SELECTION << endl;
 					break;
