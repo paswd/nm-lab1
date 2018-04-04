@@ -32,21 +32,15 @@ void LUSolve(string filename) {
 	}
 	size_t size = 0;
 	vector <TNum> b;
-	//cout << b.size() << endl;
 	try {
 		bool readres = matrix.ReadFromFile(fin, true);
-		//cout << "POINT1" << endl;
 
 		if (!readres) {
 			throw 1;
 		}
 
-		//cout << "POINT2" << endl;
-
 		size = matrix.GetHeight();
 		b.resize(size);
-
-		//cout << "POINT3" << endl;
 		
 
 		for (size_t i = 0; i < size; i++) {
@@ -55,7 +49,6 @@ void LUSolve(string filename) {
 			}
 		}
 
-		//cout << "POINT4" << endl;
 	} catch (int a) {
 		fin.close();
 		cout << "Ошибка чтения из файла" << endl;
@@ -67,7 +60,6 @@ void LUSolve(string filename) {
 	}
 	cout << endl;
 
-	//cout << "POINT5" << endl;
 	fin.close();
 	TMatrix lu;
 	LU(&matrix, &lu);
@@ -78,15 +70,12 @@ void LUSolve(string filename) {
 	for (size_t i = 0; i < size; i++) {
 		cout << "X" << i + 1 << " = " << x[i] << endl;
 	}
-	//cout << "POINT11" << endl;
 	TNum det = 1.;
 	for (size_t i = 0; i < size; i++) {
 		det *= lu.GetValue(i, i);
 	}
 
 	cout << "Определитель: " << det << endl;
-
-	//lu.Print();
 	cout << "Обратная матрица" << endl;
 
 	vector <vector <TNum>> e_matrix;
@@ -117,17 +106,11 @@ void LUSolve(string filename) {
 }
 
 vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b) {
-
-	
-	//cout << "POINT6" << endl;
-	
-	//cout << "POINT7" << endl;
 	if (lu->IsNull()) {
 		cout << "Error LU" << endl;
 		vector <TNum> tmp(0);
 		return tmp;
 	}
-	//cout << "POINT8" << endl;
 	size_t size = b.size();
 
 	vector <TNum> y(size, 0);
@@ -137,7 +120,6 @@ vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b) {
 			y[i] -= y[j] * lu->GetValue(i, j);
 		}
 	}
-	//cout << "POINT9" << endl;
 
 	vector <TNum> x(size, 0);
 	for (size_t it = b.size(); it > 0; it--) {
@@ -148,7 +130,6 @@ vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b) {
 		}
 		x[i] /= lu->GetValue(i, i);
 	}
-	//cout << "POINT10" << endl;
 	return x;
 }
 
@@ -160,47 +141,26 @@ void RunSolve(string filename) {
 	}
 	size_t n;
 	fin >> n;
-	//cout << "n = " << n << endl;
 	vector <TNum> a(n);
 	vector <TNum> b(n);
 	vector <TNum> c(n);
 	vector <TNum> d(n);
 	for (size_t i = 0; i < n; i++) {
-		//cout << i << endl;
 		if (i > 0) {
 			fin >> a[i - 1];
 			cout << a[i - 1] << " ";
 		}
 		fin >> b[i];
 		cout << b[i] << " ";
-		//cout << "b[" << i << "] = " << b[i] << endl;
 		if (i < n - 1) {
 			fin >> c[i];
 			cout << c[i] << " ";
-			//cout << "c[" << i << "] = " << c[i] << endl;
 		}
 		fin >> d[i];
 		cout << d[i] << endl;
-		//cout << "d[" << i << "] = " << d[i] << endl;
 	}
 	fin.close();
 	cout << endl;
-	/*vector <TNum> cn(n);
-	vector <TNum> dn(n);
-	cn[0] = c[0] / b[0];
-	dn[0] = d[0] / b[0];
-	for (size_t i = 1; i < n; i++) {
-		TNum tmp = 1 / (b[i] - cn[i - 1] * a[i]);
-		cn[i] = c[i] * tmp;
-		dn[i] = (d[i] - dn[i - 1] * a[i]) * tmp;
-		//cout << "dn[" << i << "] = " << dn[i] << endl;
-	}
-	vector <TNum> x(n);
-	x[n - 1] = dn[n - 1];
-	for (size_t in = n - 1; in > 0; in--) {
-		size_t i = in - 1;
-		x[i] = dn[i] - cn[i] * x[i + 1];
-	}*/
 
 	c[0] /= b[0];
 	d[0] /= b[0];
@@ -219,7 +179,6 @@ void RunSolve(string filename) {
 	for (size_t i = 0; i < n; i++) {
 		cout << "X" << i + 1 << " = " << x[i] << endl;
 	}
-	//cout << filename << endl;
 }
 
 vector <TNum> BasicIterationFunc(TMatrix *matrix, vector <TNum> b);
@@ -233,22 +192,15 @@ void BasicIterationSolve(string filename) {
 	}
 	size_t size = 0;
 	vector <TNum> b;
-	//cout << b.size() << endl;
 	try {
 		bool readres = matrix.ReadFromFile(fin, true);
-		//cout << "POINT1" << endl;
 
 		if (!readres) {
 			throw 1;
 		}
 
-		//cout << "POINT2" << endl;
-
 		size = matrix.GetHeight();
 		b.resize(size);
-
-		//cout << "POINT3" << endl;
-		
 
 		for (size_t i = 0; i < size; i++) {
 			if (!(fin >> b[i])) {
@@ -256,7 +208,6 @@ void BasicIterationSolve(string filename) {
 			}
 		}
 
-		//cout << "POINT4" << endl;
 	} catch (int a) {
 		fin.close();
 		cout << "Ошибка чтения из файла" << endl;
@@ -268,55 +219,9 @@ void BasicIterationSolve(string filename) {
 	}
 	cout << endl;
 
-	//cout << "POINT5" << endl;
 	fin.close();
 	
 	vector <TNum> x = BasicIterationFunc(&matrix, b);
-	/*vector <TNum> x(size, 1);
-	size_t n;
-	vector <TNum> e(size);
-	vector <TNum> d(size);
-	bool is_set_first = true;
-	//bool is_continue = true;
-
-	while (true) {
-		if (is_set_first) {
-			n = 1;
-		}
-		is_set_first = true;
-		vector <TNum> xn(size);
-		for (size_t i = 0; i < size; i++) {
-			e[i] = 0.;
-			for (size_t j = 0; j < size; j++) {
-				e[i] += matrix.GetValue(i, j) * x[j];
-			}
-			e[i] -= b[i];
-			d[i] = e[i] / matrix.GetValue(i, i);
-			xn[i] = x[i] - d[i];
-
-		}
-		n++;
-		if (n <= size) {
-			is_set_first = false;
-			continue;
-		}
-		for (size_t i = 0; i < size; i++) {
-			x[i] = xn[i];
-		}
-		TNum max_d = 0;
-		bool max_empty = true;
-		for (size_t i = 0; i < size; i++) {
-			TNum dn = abs(d[i]);
-			if (dn > max_d || max_empty) {
-				max_d = dn;
-				max_empty = false;
-			}
-		}
-		//cout << max_d << endl;
-		if (max_d < EPS) {
-			break;
-		}
-	}*/
 	cout << "Решение:" << endl;
 	for (size_t i = 0; i < size; i++) {
 		cout << "X" << i + 1 << " = " << x[i] << endl;
@@ -364,7 +269,6 @@ vector <TNum> BasicIterationFunc(TMatrix *matrix, vector <TNum> b) {
 				max_empty = false;
 			}
 		}
-		//cout << max_d << endl;
 		if (max_d < EPS) {
 			break;
 		}
@@ -375,7 +279,6 @@ vector <TNum> BasicIterationFunc(TMatrix *matrix, vector <TNum> b) {
 vector <TNum> ZeidelFunc(TMatrix *matrix, vector <TNum> b);
 
 void ZeidelSolve(string filename) {
-	//cout << "ZEIDEL" << endl;
 	TMatrix matrix;
 	ifstream fin(filename.c_str());
 	if (!fin.is_open()) {
@@ -384,22 +287,15 @@ void ZeidelSolve(string filename) {
 	}
 	size_t size = 0;
 	vector <TNum> b;
-	//cout << b.size() << endl;
 	try {
 		bool readres = matrix.ReadFromFile(fin, true);
-		//cout << "POINT1" << endl;
 
 		if (!readres) {
 			throw 1;
 		}
 
-		//cout << "POINT2" << endl;
-
 		size = matrix.GetHeight();
-		b.resize(size);
-
-		//cout << "POINT3" << endl;
-		
+		b.resize(size);		
 
 		for (size_t i = 0; i < size; i++) {
 			if (!(fin >> b[i])) {
@@ -407,7 +303,6 @@ void ZeidelSolve(string filename) {
 			}
 		}
 
-		//cout << "POINT4" << endl;
 	} catch (int a) {
 		fin.close();
 		cout << "Ошибка чтения из файла" << endl;
@@ -419,61 +314,8 @@ void ZeidelSolve(string filename) {
 	}
 	cout << endl;
 
-	//cout << "POINT5" << endl;
 	fin.close();
 	vector <TNum> x = ZeidelFunc(&matrix, b);
-	
-	/*vector <TNum> x(size, 1);
-	
-	size_t n;
-	vector <TNum> e(size);
-	vector <TNum> d(size);
-	bool is_set_first = true;
-	//bool is_continue = true;
-	vector <TNum> xn(size, 1);
-
-	while (true) {
-		if (is_set_first) {
-			n = 1;
-		}
-		is_set_first = true;
-		
-		for (size_t i = 0; i < size; i++) {
-			e[i] = 0.;
-			for (size_t j = 0; j < size; j++) {
-				if (j < i) {
-					e[i] += matrix.GetValue(i, j) * xn[j];
-				} else {
-					e[i] += matrix.GetValue(i, j) * x[j];
-				}
-			}
-			e[i] -= b[i];
-			d[i] = e[i] / matrix.GetValue(i, i);
-			xn[i] = x[i] - d[i];
-
-		}
-		n++;
-		if (n <= size) {
-			is_set_first = false;
-			continue;
-		}
-		for (size_t i = 0; i < size; i++) {
-			x[i] = xn[i];
-		}
-		TNum max_d = 0;
-		bool max_empty = true;
-		for (size_t i = 0; i < size; i++) {
-			TNum dn = abs(d[i]);
-			if (dn > max_d || max_empty) {
-				max_d = dn;
-				max_empty = false;
-			}
-		}
-		//cout << max_d << endl;
-		if (max_d < EPS) {
-			break;
-		}
-	}*/
 	cout << "Решение:" << endl;
 	for (size_t i = 0; i < size; i++) {
 		cout << "X" << i + 1 << " = " << x[i] << endl;
@@ -525,7 +367,6 @@ vector <TNum> ZeidelFunc(TMatrix *matrix, vector <TNum> b) {
 				max_empty = false;
 			}
 		}
-		//cout << max_d << endl;
 		if (max_d < EPS) {
 			break;
 		}
@@ -544,28 +385,18 @@ void RotateSolve(string filename) {
 	}
 	size_t size = 0;
 	TNum accuracy = EPS;
-	//cout << b.size() << endl;
 	try {
 		bool readres = matrix.ReadFromFile(fin, true);
-		//cout << "POINT1" << endl;
 
 		if (!readres) {
 			throw 1;
 		}
 
-		//cout << "POINT2" << endl;
-
 		size = matrix.GetHeight();
-		//b.resize(size);
-
-		//cout << "POINT3" << endl;
-		
-
 		if (!(fin >> accuracy)) {
 			throw 1;
 		}
 
-		//cout << "POINT4" << endl;
 	} catch (int a) {
 		fin.close();
 		cout << "Ошибка чтения из файла" << endl;
@@ -574,7 +405,6 @@ void RotateSolve(string filename) {
 	cout << "Точность успешно импортирована:" << endl;
 	cout << accuracy << endl << endl;
 
-	//cout << "POINT5" << endl;
 	fin.close();
 
 	TMatrix origin(&matrix);
@@ -611,11 +441,7 @@ void RotateSolve(string filename) {
 			TMatrix tmp_matr;
 			MatrixComposition(&eigen, &rot, &tmp_matr);
 			eigen.Init(&tmp_matr, size, size);
-			//cout << "k = " << ccc << endl;
-			//matrix.Print();
-			//cout << endl;
 		}
-		//ccc++;
 		TNum summ = 0.;
 		for (size_t i = 0; i < size - 1; i++) {
 			for (size_t j = i + 1; j < size; j++) {
@@ -636,30 +462,6 @@ void RotateSolve(string filename) {
 	for (size_t i = 0; i < size; i++) {
 		l[i] = matrix.GetValue(i, i);
 	}
-	/*cout << "Собственные значения:" << endl;
-	for (size_t i = 0; i < size; i++) {
-		cout << matrix.GetValue(i, i) << " ";
-	}
-	cout << endl;*/
-	/*cout << "Результат:" << endl;
-	matrix.Print();*/
-
-	/*vector <TNum> zero(size, 0.);
-
-	for (size_t i = 0; i < size; i++) {
-		TMatrix charact(&origin);
-		for (size_t j = 0; j < size; j++) {
-			charact.SetValue(charact.GetValue(j, j) - l[i], j, j);
-		}
-		//charact.Print();
-		vector <TNum> x = ZeidelFunc(&charact, zero);
-		cout << "l" << i + 1 << " = " << l[i] << endl;
-		cout << "Собственный вектор для l" << i + 1 << ":" << endl;
-		for (size_t j = 0; j < x.size(); j++) {
-			cout << x[j] << " ";
-		}
-		cout << endl << endl;
-	}*/
 	for (size_t i = 0; i < size; i++) {
 		cout << "l" << i + 1 << " = " << l[i] << endl;
 		cout << "Собственный вектор для l" << i + 1 << ":" << endl;
@@ -681,37 +483,23 @@ void JakobiRotation(TMatrix *matrix, TMatrix *rot, size_t i, size_t j, TNum accu
 		tsin = sin(theta);
 		tcos = cos(theta);
 	} else {
-		/*TNum tau = matrix->GetValue(i, i) - matrix->GetValue(j, j) / (2 * matrix->GetValue(i, j));
-		TNum ttg = TSign(tau) / (abs(tau) + sqrt(1 + tau * tau));
-		tcos = 1 / sqrt(1 + ttg * ttg);
-		tsin = tcos * ttg;*/
 		TNum tmp = 2 * matrix->GetValue(i, j) / (matrix->GetValue(i, i) - matrix->GetValue(j, j));
 		TNum theta = .5 * atan(tmp);
 		tsin = sin(theta);
 		tcos = cos(theta);
 	}
-	//cout << tcos << " " << tsin << endl;
-	//cout << i << ":" << j << endl;
-	//TMatrix rot;
 	rot->SetUnit(size);
 	rot->SetValue(tcos, i, i);
 	rot->SetValue(tcos, j, j);
 	rot->SetValue(tsin, j, i);
 	rot->SetValue(-tsin, i, j);
-	//cout << endl;
-	//rot.Print();
 
 	TMatrix rot_t(rot);
 	rot_t.Transpose();
-	//rot_t.Print();
-	//cout << endl;
 	TMatrix m_tmp1, m_tmp2;
 	MatrixComposition(&rot_t, matrix, &m_tmp1);
 	MatrixComposition(&m_tmp1, rot, &m_tmp2);
 	matrix->Init(&m_tmp2, size, size);
-	//cout << "Rotated" << endl;
-	//matrix->Print();
-	//cout << endl << "==========" << endl;
 }
 
 void QRSolve(string filename) {
@@ -719,13 +507,12 @@ void QRSolve(string filename) {
 }
 
 int main(void) {
-	//cout << "EPS = " << EPS << endl;
 	cout << "=================" << endl;
 	cout << "Выберите задание:" << endl;
 	cout << "1 - LU-разложение" << endl;
 	cout << "2 - Метод прогонки" << endl;
 	cout << "3 - Метод простых итераций / Метод Зейделя" << endl;
-	cout << "4 - Метод вращений (не реализовано)" << endl;
+	cout << "4 - Метод вращений" << endl;
 	cout << "5 - QR-разложение (не реализовано)" << endl;
 	cout << "=================" << endl;
 
