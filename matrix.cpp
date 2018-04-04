@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -217,6 +218,29 @@ void TMatrix::SetUnit(size_t side) {
 	for (size_t i = 0; i < side; i++) {
 		this->SetValue(1, i, i);
 	}
+}
+
+bool TMatrix::IsDiag(void) {
+	return this->IsDiag(EPS);
+}
+bool TMatrix::IsDiag(TNum accuracy) {
+	bool res = true;
+	for (size_t i = 0; i < this->Height; i++) {
+		for (size_t j = 0; j < this->Width; j++) {
+			if (i == j) {
+				continue;
+			}
+			//cout << "[" << i << ":" << j << "] " << this->Values[i][j] << endl;
+			if (!(abs(this->Values[i][j]) < accuracy)) {
+				res = false;
+				break;
+			}
+		}
+		if (!res) {
+			break;
+		}
+	}
+	return res;
 }
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {
