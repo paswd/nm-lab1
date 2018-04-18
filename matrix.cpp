@@ -216,7 +216,7 @@ void TMatrix::SetUnit(size_t side) {
 	this->Clear();
 	this->Init(NULL, side, side);
 	for (size_t i = 0; i < side; i++) {
-		this->SetValue(1, i, i);
+		this->SetValue(1., i, i);
 	}
 }
 
@@ -241,6 +241,31 @@ bool TMatrix::IsDiag(TNum accuracy) {
 		}
 	}
 	return res;
+}
+
+void TMatrix::MultiplyNum(TNum num) {
+	for (size_t i = 0; i < this->Height; i++) {
+		for (size_t j = 0; j < this->Width; j++) {
+			this->Values[i][j] *= num;
+		}
+	}
+}
+void TMatrix::Summ(TMatrix *matrix) {
+	if (this->Height != matrix->GetHeight() || this->Width != matrix->GetWidth()) {
+		return;
+	}
+	for (size_t i = 0; i < this->Height; i++) {
+		for (size_t j = 0; j < this->Width; j++) {
+			this->Values[i][j] += matrix->GetValue(i, j);
+		}
+	}
+}
+void TMatrix::Minus(void) {
+	for (size_t i = 0; i < this->Height; i++) {
+		for (size_t j = 0; j < this->Width; j++) {
+			this->Values[i][j] = -this->Values[i][j];
+		}
+	}
 }
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w) {

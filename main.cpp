@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <complex>
 #include "types.h"
 #include "matrix.h"
 
@@ -11,7 +12,11 @@ using namespace std;
 
 const string INCORRECT_SELECTION = "Неверная опция";
 
-vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b);
+/*
+===============
+BASIC FUNCTIONS
+===============
+*/
 
 TNum TSign(TNum num) {
 	if (num > 0) {
@@ -22,6 +27,29 @@ TNum TSign(TNum num) {
 	}
 	return 0.;
 }
+
+pair<complex <TNum>, complex <TNum>> SqEquRoot(TNum a, TNum b, TNum c) {
+	//cout << "SQ::Begin" << endl;
+	//cout << a << " " << b << " " << c << endl;
+	complex <TNum> d = b * b - 4 * a * c;
+	//cout << "d = " << d << endl;
+	complex <TNum> x1, x2;
+	x1 = (-b + sqrt(d)) / (2 * a);
+	x2 = (-b - sqrt(d)) / (2 * a);
+	//cout << "x1 = " << x1 << endl;
+	//cout << "x2 = " << x2 << endl;
+	//cout << "SQ::End" << endl;
+
+	return make_pair(x1, x2);
+}
+
+/*
+=======
+METHODS
+=======
+*/
+
+vector <TNum> LUSolveFunc(TMatrix *lu, vector <TNum> b);
 
 void LUSolve(string filename) {
 	TMatrix matrix;
@@ -236,7 +264,9 @@ vector <TNum> BasicIterationFunc(TMatrix *matrix, vector <TNum> b) {
 	vector <TNum> d(size);
 	bool is_set_first = true;
 
+	size_t iter = 0;
 	while (true) {
+		iter++;
 		if (is_set_first) {
 			n = 1;
 		}
@@ -273,6 +303,7 @@ vector <TNum> BasicIterationFunc(TMatrix *matrix, vector <TNum> b) {
 			break;
 		}
 	}
+	cout << "Число итераций: " << iter << endl;
 	return x;
 }
 
@@ -330,7 +361,9 @@ vector <TNum> ZeidelFunc(TMatrix *matrix, vector <TNum> b) {
 	bool is_set_first = true;
 	vector <TNum> xn(size, 1);
 
+	size_t iter = 0;
 	while (true) {
+		iter++;
 		if (is_set_first) {
 			n = 1;
 		}
@@ -371,6 +404,7 @@ vector <TNum> ZeidelFunc(TMatrix *matrix, vector <TNum> b) {
 			break;
 		}
 	}
+	cout << "Число итераций: " << iter << endl;
 	return x;
 }
 
@@ -500,10 +534,206 @@ void JakobiRotation(TMatrix *matrix, TMatrix *rot, size_t i, size_t j, TNum accu
 	MatrixComposition(&rot_t, matrix, &m_tmp1);
 	MatrixComposition(&m_tmp1, rot, &m_tmp2);
 	matrix->Init(&m_tmp2, size, size);
+	//matrix->Print();
+	//cout << endl;
 }
 
+vector <complex <TNum>> QRFunc(TMatrix *matrix, TNum accuracy);
+
 void QRSolve(string filename) {
-	cout << filename << endl;
+	TMatrix matrix;
+	ifstream fin(filename.c_str());
+	if (!fin.is_open()) {
+        cout << "Ошибка чтения файла" << endl;
+        return;
+	}
+	size_t size = 0;
+	TNum accuracy = EPS;
+	try {
+		bool readres = matrix.ReadFromFile(fin, true);
+
+		if (!readres) {
+			throw 1;
+		}
+
+		size = matrix.GetHeight();
+		if (!(fin >> accuracy)) {
+			throw 1;
+		}
+
+	} catch (int a) {
+		fin.close();
+		cout << "Ошибка чтения из файла" << endl;
+		return;
+	}
+	cout << "Точность успешно импортирована:" << endl;
+	cout << accuracy << endl << endl;
+
+	fin.close();
+
+	vector <complex <TNum>> l = QRFunc(&matrix, accuracy);
+
+	cout << "Результат:" << endl;
+	for (size_t i = 0; i < size; i++) {
+		cout << "l" << i + 1 << " = " << l[i] << endl;
+	}
+}
+
+void QRDecomposition(TMatrix *matrix, TMatrix *q, TMatrix *r) {
+	size_t size = matrix->GetHeight();
+	r->Init(matrix, size, size);
+	q->SetUnit(size);
+	TMatrix v, h;
+	//int cnt = 0;
+	for (size_t i = 0; i < size - 1; i++) {
+		//cout << "CNT: " << cnt << endl;
+		//cnt++;
+		//V start
+		v.Init(NULL, size, 1);
+		TNum summ = 0.;
+		for (size_t j = 0; j < size; j++) {
+			if (j < i) {
+				v.SetValue(0., j, 0);
+			} else {
+				TNum tmp = r->GetValue(j, i);
+				v.SetValue(tmp, j, 0);
+				summ += tmp * tmp;
+			}
+		}
+		TNum vect_tmp = v.GetValue(i, 0) + copysign(sqrt(summ), r->GetValue(i, i));
+		v.SetValue(vect_tmp, i, 0);
+		//V end
+		//v.Print();//
+
+		//H begin
+
+		TMatrix vt(&v);
+		vt.Transpose();
+		//vt.Print();
+
+		TMatrix znam_matrix;
+		MatrixComposition(&vt, &v, &znam_matrix);
+		//znam_matrix.Print();
+		//cout << endl;
+		TNum koeff = znam_matrix.GetValue(0, 0);
+
+		koeff = 2. / koeff;
+		//cout << "koeff = " << koeff << endl;
+		TMatrix vm;
+		MatrixComposition(&v, &vt, &vm);
+		//vm.Print();
+		//cout << endl;
+		vm.MultiplyNum(koeff);
+		//vm.Print();
+		//cout << endl;
+		vm.Minus();
+		//vm.Print();
+		//cout << endl;
+		h.SetUnit(size);
+		h.Summ(&vm);
+		//H end
+		//h.Print();//
+
+		TMatrix m_tmp;
+		MatrixComposition(q, &h, &m_tmp);
+		q->Init(&m_tmp, size, size);
+		MatrixComposition(&h, r, &m_tmp);
+		r->Init(&m_tmp, size, size);
+		//q->Print();
+		//r->Print();
+		//cout << "3 3" << endl;
+		//q->Print();
+		//cout << endl << endl;
+		//cout << "3 3" << endl;
+		//r->Print();
+		//cout << endl << "===" << endl;
+		//cout << "===" << endl;
+	}
+}
+
+bool QRIsContinueIteration(TMatrix *matrix, TNum accuracy) {
+	size_t size = matrix->GetHeight();
+	TNum summ = 0.;
+
+	for (size_t i = 0; i < size - 1; i++) {
+		for (size_t j = i + 2; j < size; j++) {
+			TNum tmp = matrix->GetValue(i, j);
+			summ += tmp * tmp;
+		}
+	}
+	//cout << "SUMM = " << summ << endl;
+	//cout << "SQRT = " << sqrt(summ) << endl;
+	return sqrt(summ) > accuracy;
+}
+
+vector <TNum> QRGetV(TMatrix *matrix, size_t idx) {
+	size_t size = matrix->GetHeight();
+	vector <TNum> res(size, 1.);
+	TNum summ = 0.;
+
+	for (size_t i = 0; i < size; i++) {
+		if (i < idx) {
+			res[i] = 0.;
+		} else {
+			TNum tmp = matrix->GetValue(i, idx);
+			res[i] = tmp;
+			summ += tmp * tmp;
+		}
+	}
+	res[idx] += copysign(sqrt(summ), matrix->GetValue(idx, idx));
+
+	return res;
+}
+
+vector <complex <TNum>> QRFunc(TMatrix *matrix, TNum accuracy) {
+	TMatrix q, r;
+	TMatrix ak(matrix);
+
+	//ak.Print();
+	//int cnt = 0;
+	while (QRIsContinueIteration(&ak, accuracy)) {
+		//cout << "CNT: " << cnt << endl;
+		//cnt++;
+		//cout << "TEST" << endl;
+		QRDecomposition(&ak, &q, &r);
+		//cout << "3 3" << endl;
+		//q.Print();
+		//cout << endl << endl;
+		//cout << "3 3" << endl;
+		//r.Print();
+		//cout << endl << "===" << endl;
+		//cout << endl;
+		MatrixComposition(&r, &q, &ak);
+	}
+	//ak.Print();
+	//cout << "POINT" << endl;
+
+	size_t size = ak.GetHeight();
+	vector <complex <TNum>> res(size, 1.);
+	pair<complex<TNum>, complex<TNum>> root;
+	//cout << "~~~" << endl;
+
+	for (size_t i = 0; i < size; i++) {
+		if (i + 1 < size && !(ak.GetValue(i + 1, i) < accuracy)) {
+			root = SqEquRoot(
+				1.,
+				-(ak.GetValue(i, i) + ak.GetValue(i + 1, i + 1)), 
+				ak.GetValue(i, i) * ak.GetValue(i + 1, i + 1) -
+					ak.GetValue(i, i + 1) * ak.GetValue(i + 1, i)
+			);
+			//cout << root.first << endl;
+			//cout << root.second << endl;
+			res[i] = root.first;
+			i++;
+			res[i] = root.second;
+		} else {
+			res[i] = ak.GetValue(i, i);
+			//cout << ak.GetValue(i, i) << endl;
+		}
+	}
+	//cout << "===" << endl;
+
+	return res;
 }
 
 int main(void) {
@@ -513,7 +743,7 @@ int main(void) {
 	cout << "2 - Метод прогонки" << endl;
 	cout << "3 - Метод простых итераций / Метод Зейделя" << endl;
 	cout << "4 - Метод вращений" << endl;
-	cout << "5 - QR-разложение (не реализовано)" << endl;
+	cout << "5 - QR-разложение" << endl;
 	cout << "=================" << endl;
 
 	cout << "Ваш выбор: ";

@@ -34,6 +34,9 @@ public:
 	void SetUnit(size_t side);
 	bool IsDiag(void);
 	bool IsDiag(TNum accuracy);
+	void MultiplyNum(TNum num);
+	void Summ(TMatrix *matrix);
+	void Minus(void);
 };
 
 TMatrix SubMatrix(TMatrix matrix, size_t i, size_t j, size_t h, size_t w);
